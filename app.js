@@ -33,7 +33,7 @@ var bot = new builder.UniversalBot(connector, [
     function(session){
         //Cette fonction contient le dialogue "menu" programmé plus bas.
 
-        session.beginDialog("firstRun");
+        session.beginDialog("menu");
     }
 ]).set('storage', inMemoryStorage);
 //Définition de la mémoire de stockage pour nos DialogData , userData ou encore nos ConversionData.
