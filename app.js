@@ -5,6 +5,13 @@ var builder = require("botbuilder");
 //2) Appeler un serveur RESTIFY pour broacast les messages => Envoyer des messages au BOT / d'en recevoir
 var restify = require("restify");
 
+
+const SpaceXAPI = require('SpaceX-API-Wrapper');
+
+let SpaceX = new SpaceXAPI();
+
+
+
 //Chaque serveur doit avoir un port d'écoute pour fonctionner .
 //3) On crée un serveur en lui donnant un port d'écoute libre.
 var server = new restify.createServer();
@@ -32,7 +39,6 @@ var inMemoryStorage = new builder.MemoryBotStorage();
 var bot = new builder.UniversalBot(connector, [
     function(session){
         //Cette fonction contient le dialogue "menu" programmé plus bas.
-
         session.beginDialog("menu");
     }
 ]).set('storage', inMemoryStorage);
@@ -74,19 +80,55 @@ bot.dialog('menu',[
     }
 ]);
 
+bot.on('conversationUpdate', function (message) {
+    if (message.membersAdded) {
+        message.membersAdded.forEach(function (identity) {
+            // Bot is joining conversation
+            if (identity.id === message.address.bot.id) {
+                bot.beginDialog(message.address, 'presentation');
+                bot.beginDialog(message.address, 'menu');
+            }
+        });
+    }
+});
 
 /*--- Les dialogues de notre menu 'toto', 'titi' & 'tutu' ---*/
 bot.dialog('option1',[
         function(session){ session.send('Vous êtes dans l\'option 1');}
 ]);
 bot.dialog('option2',[
-    function(session){ session.send('Vous êtes dans l\'option 2');}
+  function(session){
+    SpaceX.getAllPastLaunches({},function(err, info){
+        var i = 0,result = [], string="Nos derniers lancements \n\n";
+        while (i<3) {
+
+          //Formalisation du texte
+          string += " Nom de la mission "+JSON.stringify(info[i].mission_name) +"  \n";
+          string += " Date de la mission "+Date(info[i].launch_date_utc) +"  \n";
+          string += " Site du lancement "+JSON.stringify(info[i].site_name_long) +"  \n";
+          string += " Nom de la fusée "+JSON.stringify(info[i].rocket.rocket_name) +"  \n";
+          string += "\n";
+          i++;
+        }
+        //Résultat des lancements
+        session.send(string);
+    });
+  }
 ]);
+
+
+
 bot.dialog('option3',[
-    function(session){session.send('Vous êtes dans l\'option 3');}
+    function(session){ session.send("Vous êtes dans l'option 3")}
 ]);
+
+
+var about = "La société SpaceX conçoit, construit et commercialise les lanceurs Falcon 9,\n les moteurs Merlin qui les propulsent ainsi que le vaisseau cargo Dragon et sa version habitée. \nLe lanceur Falcon 1 qui a été le premier lanceur de la société n'est plus en service. \nAprès trois échecs en 2006, 2007 et 2008, a lieu le 28 septembre 2008 le premier succès du lanceur Falcon 1, \nqui met ensuite en orbite le satellite d'observation malaisien RazakSAT lors de son cinquième vol, le 13 juillet 2009.";
 bot.dialog('option4',[
-    function(session){session.send('Vous êtes dans l\'option 4');}
+    function(session){session.send(about);}
 ]);
 
 // Add first run dialog
+bot.dialog('presentation',[
+        function(session){ session.send('Bonjour  je suis le bot dédié à l\'API de Space-X.');}
+]);
