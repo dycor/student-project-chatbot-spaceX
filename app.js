@@ -168,6 +168,7 @@ bot.dialog('option3',[
 
 bot.dialog('option4',[
   function(session){
+                session.sendTyping();
                 SpaceX.getCompanyInfo(function(err, info){
                     
                     //console.log(info);
