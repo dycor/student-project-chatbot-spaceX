@@ -99,19 +99,62 @@ bot.dialog('option1',[
 bot.dialog('option2',[
   function(session){
     SpaceX.getAllPastLaunches({},function(err, info){
+
+        //console.log(info);
         var i = 0,result = [], string="Nos derniers lancements \n\n";
         while (i<3) {
 
           //Formalisation du texte
-          string += " Nom de la mission "+JSON.stringify(info[i].mission_name) +"  \n";
-          string += " Date de la mission "+Date(info[i].launch_date_utc) +"  \n";
-          string += " Site du lancement "+JSON.stringify(info[i].site_name_long) +"  \n";
-          string += " Nom de la fusée "+JSON.stringify(info[i].rocket.rocket_name) +"  \n";
+          string += "Nom de la mission "+JSON.stringify(info[i].mission_name) +"  \n";
+          string += "Date de la mission "+Date(info[i].launch_date_utc) +"  \n";
+          string += "Site du lancement "+JSON.stringify(info[i].site_name_long) +"  \n";
+          string += "Nom de la fusée "+JSON.stringify(info[i].rocket.rocket_name) +"  \n";
           string += "\n";
           i++;
         }
         //Résultat des lancements
-        session.send(string);
+    
+            var card = {
+                "type": "message",
+                "text": "Plain text is ok, but sometimes I long for more...",
+                "attachments": [
+                  {
+                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "content": {
+                      "type": "AdaptiveCard",
+                      "version": "1.0",
+                      "body": [
+                        {
+                          "type": "TextBlock",
+                          "text": info[0].mission_name,
+                          "size": "large"
+                        },
+                        {
+                          "type": "TextBlock",
+                          "text": "*Sincerely yours,*"
+                        },
+                        {
+                          "type": "TextBlock",
+                          "text": "Adaptive Cards",
+                          "separation": "none"
+                        }
+                      ],
+                      "actions": [
+                        {
+                          "type": "Action.OpenUrl",
+                          "url": "http://adaptivecards.io",
+                          "title": "Learn More"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              };
+
+
+
+
+        session.send(card);
     });
   }
 ]);
@@ -119,16 +162,114 @@ bot.dialog('option2',[
 
 
 bot.dialog('option3',[
-    function(session){ session.send("Vous êtes dans l'option 3")}
+  function(session){ session.send("Vous êtes dans l'option 3")}
 ]);
 
 
-var about = "La société SpaceX conçoit, construit et commercialise les lanceurs Falcon 9,\n les moteurs Merlin qui les propulsent ainsi que le vaisseau cargo Dragon et sa version habitée. \nLe lanceur Falcon 1 qui a été le premier lanceur de la société n'est plus en service. \nAprès trois échecs en 2006, 2007 et 2008, a lieu le 28 septembre 2008 le premier succès du lanceur Falcon 1, \nqui met ensuite en orbite le satellite d'observation malaisien RazakSAT lors de son cinquième vol, le 13 juillet 2009.";
 bot.dialog('option4',[
-    function(session){session.send(about);}
+  function(session){
+                SpaceX.getCompanyInfo(function(err, info){
+                    
+                    //console.log(info);
+                    var card = {
+                        "type": "message",
+                        "attachments": [
+                          {
+                            "contentType": "application/vnd.microsoft.card.adaptive",
+                            "content": {
+                              "type": "AdaptiveCard",
+                              "version": "1.0",
+                              "body": [
+                                {
+                                  "type": "TextBlock",
+                                  "text": "We are "+info.name,
+                                  "size": "large"
+                                },
+                                {
+                                    "type": "Image",
+                                    "url": "https://camo.githubusercontent.com/039d05b54e544e61fe6224b037d8d2818025e29f/68747470733a2f2f692e696d6775722e636f6d2f796d70753874352e6a7067",
+                                    "imageSize": "small",
+                                },
+                                {
+                                  "type": "TextBlock",
+                                  "text": "CEO : "+info.founder
+                                },
+                                {
+                                    "type": "TextBlock",
+                                    "text": "Foundation date : "+info.founded,
+                                    "separation": "none"
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "Number launch site : "+info.launch_sites
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "Number test site: "+info.test_sites,
+                                    "separation": "none"
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "Location",
+                                    "size": "medium"
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "Address : "+info.headquarters.address
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "City : "+info.headquarters.city,
+                                    "separation": "none"
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "State : "+info.headquarters.state,
+                                    "separation": "none"
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "Team",
+                                    "size": "medium"
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "CTO : "+info.cto
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "COO :"+info.coo,
+                                    "separation": "none"
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "CTO Propulsion :"+info.cto_propulsion,
+                                    "separation": "none"
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": info.summary
+                                  }
+                              ],
+                              "actions": [
+                                {
+                                  "type": "Action.OpenUrl",
+                                  "url": "http://www.spacex.com/about",
+                                  "title": "Learn More"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      };
+                      
+                      session.send(card);
+                });
+         
+    }
 ]);
 
-// Add first run dialog
+//Dialogue de présentation du bot
 bot.dialog('presentation',[
-        function(session){ session.send('Bonjour  je suis le bot dédié à l\'API de Space-X.');}
+  function(session){ session.send('Bonjour  je suis le bot dédié à l\'API de Space-X.');}
 ]);
