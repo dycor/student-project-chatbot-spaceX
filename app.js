@@ -48,16 +48,16 @@ var bot = new builder.UniversalBot(connector, [
 
 /* Un objet initialisant le menu de notre dialogue suivant. Celui contient le contient la valeurs des rubriques de cemnu*/
 const menuItems = {
-    "Rechercher un lancement":{
+    "Search for a launch":{
         items: "option1"
     },
-    "Présenter les derniers lancements":{
+    "Get the latest launch":{
         items: "option2"
     },
-    "Rechercher une fusée":{
+    "Search for a capsule":{
         items: "option3"
     },
-    "A propose de nous":{
+    "About us":{
         items: "option4"
     }
 };
@@ -69,7 +69,7 @@ const menuItems = {
 bot.dialog('menu',[
     //Etape1
     function(session){
-        builder.Prompts.choice(session,"Choisissez une option de notre menu",menuItems,{listStyle:3});
+        builder.Prompts.choice(session,"Choose an option",menuItems,{listStyle:3});
         //Le prompt choisi affiche le lien du menu avec une mise en forme via l'attribut 'listStyle'.
     },
     function(session, results){
@@ -95,7 +95,7 @@ bot.on('conversationUpdate', function (message) {
 //Dialogue de la recherche de la fusée
 bot.dialog('option1',[
         function(session){
-          builder.Prompts.text(session,`Saisissez le code du lancement`);
+          builder.Prompts.text(session,`Input a launch code`);
 
         },
         function(session, results){
@@ -115,19 +115,16 @@ bot.dialog('option1',[
                             "body": [
                               {
                                 "type": "TextBlock",
-                                "text": "Nom du lancement : "+info.full_name,
+                                "text": "Lauch nam : "+info.full_name,
                                 "size": "large"
 
                               },
                               {
                                   "type": "TextBlock",
-                                  "text": "ID : "+info.status,
+                                  "text": "Id : "+info.status,
                                   "separation": "none"
                                 },
-                                {
-                                  "type": "TextBlock",
-                                  "text": "Location : "+info.location.name
-                                },
+                
                                 {
                                   "type": "TextBlock",
                                   "text": "Area : "+info.location.name
@@ -138,7 +135,7 @@ bot.dialog('option1',[
                                 },
                                 {
                                   "type": "TextBlock",
-                                  "text": "Longtitude : "+info.location.longtitude
+                                  "text": "longtitude : "+info.location.longtitude
                                 },
                                 {
                                   "type": "TextBlock",
@@ -170,7 +167,6 @@ bot.dialog('option2',[
       session.sendTyping();
       SpaceX.getLatestLaunch(function (err, launch) {
           var adaptiveCardMessage = buildLaunchAdaptiveCard(launch, session);
-          // session.send(JSON.stringify(launch));
           session.send(adaptiveCardMessage);
       });
   }
@@ -181,7 +177,7 @@ bot.dialog('option2',[
 //Dialogue de la recherche de la fusée
 bot.dialog('option3',[
   function(session){
-    builder.Prompts.text(session,`Saisissez le code de la fusée`);
+    builder.Prompts.text(session,`Enter a capsule code`);
 
   },
   function(session, results){
@@ -203,7 +199,7 @@ bot.dialog('option3',[
                       "body": [
                         {
                           "type": "TextBlock",
-                          "text": "Fusée : "+info.name,
+                          "text": "Capsule : "+info.name,
                           "size": "large"
 
                         },
@@ -218,7 +214,7 @@ bot.dialog('option3',[
                           },
                           {
                             "type": "TextBlock",
-                            "text": "Dimension",
+                            "text": "Diameter",
                             "size":"Large",
                           },
                           {
@@ -276,11 +272,11 @@ bot.dialog('option4',[
                                   },
                                   {
                                     "type": "TextBlock",
-                                    "text": "Number launch site : "+info.launch_sites
+                                    "text": "Number of launch site : "+info.launch_sites
                                   },
                                   {
                                     "type": "TextBlock",
-                                    "text": "Number test site: "+info.test_sites,
+                                    "text": "Number of test site: "+info.test_sites,
                                     "separation": "none"
                                   },
                                   {
@@ -346,7 +342,7 @@ bot.dialog('option4',[
 
 //Dialogue de présentation du bot - Dès l'ouverture du client
 bot.dialog('presentation',[
-  function(session){ session.send('Bonjour  je suis le bot dédié à l\'API de Space-X. Je peux effectuer les actions suivantes:');}
+  function(session){ session.send('Hello ! I\'m Wall-e ,the space-x chatbot  . Here is all of i can do for you:');}
 ]);
 
 
