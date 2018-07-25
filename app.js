@@ -10,7 +10,10 @@ const SpaceXAPI = require('SpaceX-API-Wrapper');
 
 let SpaceX = new SpaceXAPI();
 
-
+var connector = new builder.ChatConnector({
+ appId: process.env.MICROSOFT_APP_ID,
+ appPassword: process.env.MICROSOFT_APP_PASSWORD
+});
 
 //Chaque serveur doit avoir un port d'écoute pour fonctionner .
 //3) On crée un serveur en lui donnant un port d'écoute libre.
@@ -101,7 +104,9 @@ bot.dialog('option1',[
         function(session, results){
           // console.log('hello')
 
-             SpaceX.getLaunchPad(results.response,function(err, info){
+             SpaceX.getLaunchPad(results.response ,function(err, info){
+
+               //
                if(err == null){
                   //Card
                   var card = {
@@ -124,7 +129,7 @@ bot.dialog('option1',[
                                   "text": "Id : "+info.status,
                                   "separation": "none"
                                 },
-                
+
                                 {
                                   "type": "TextBlock",
                                   "text": "Area : "+info.location.name
@@ -155,6 +160,8 @@ bot.dialog('option1',[
                 //Affichage du résultat
                  session.send(card);
                }
+               //
+
              });
          }
 ]);
