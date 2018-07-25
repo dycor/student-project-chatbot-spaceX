@@ -92,31 +92,108 @@ bot.on('conversationUpdate', function (message) {
     }
 });
 
-/*--- Les dialogues de notre menu 'toto', 'titi' & 'tutu' ---*/
+//Dialogue de la recherche de la fusée
 bot.dialog('option1',[
-        function(session){ session.send('Vous êtes dans l\'option 1');}
+        function(session){
+          builder.Prompts.text(session,`Saisissez le code du lancement`);
+
+        },
+        function(session, results){
+          // console.log('hello')
+
+             SpaceX.getLaunchPad(results.response,function(err, info){
+               if(err == null){
+                  //Card
+                  var card = {
+                      "type": "message",
+                      "attachments": [
+                        {
+                          "contentType": "application/vnd.microsoft.card.adaptive",
+                          "content": {
+                            "type": "AdaptiveCard",
+                            "version": "1.0",
+                            "body": [
+                              {
+                                "type": "TextBlock",
+                                "text": "Nom du lancement : "+info.full_name,
+                                "size": "large"
+
+                              },
+                              {
+                                  "type": "TextBlock",
+                                  "text": "ID : "+info.status,
+                                  "separation": "none"
+                                },
+                                {
+                                  "type": "TextBlock",
+                                  "text": "Location : "+info.location.name
+                                },
+                                {
+                                  "type": "TextBlock",
+                                  "text": "Area : "+info.location.name
+                                },
+                                {
+                                  "type": "TextBlock",
+                                  "text": "Latitude : "+info.location.latitude
+                                },
+                                {
+                                  "type": "TextBlock",
+                                  "text": "Longtitude : "+info.location.longtitude
+                                },
+                                {
+                                  "type": "TextBlock",
+                                  "text": "Capsule: "+info.vehicles_launched,
+                                  "separation": "none"
+                                },
+                                {
+                                  "type": "TextBlock",
+                                  "text": "Description : "+info.details
+                                }
+                            ]
+                          }
+                        }
+                      ]
+                    };
+
+                //Affichage du résultat
+                 session.send(card);
+               }
+             });
+         }
 ]);
+
+//Option 2 - Les des derniers lancements
 bot.dialog('option2',[
+
+
+      function (session) {
+      session.sendTyping();
+      SpaceX.getLatestLaunch(function (err, launch) {
+          var adaptiveCardMessage = buildLaunchAdaptiveCard(launch, session);
+          // session.send(JSON.stringify(launch));
+          session.send(adaptiveCardMessage);
+      });
+  }
+
+]);
+
+
+//Dialogue de la recherche de la fusée
+bot.dialog('option3',[
   function(session){
-    SpaceX.getAllPastLaunches({},function(err, info){
+    builder.Prompts.text(session,`Saisissez le code de la fusée`);
 
-        //console.log(info);
-        var i = 0,result = [], string="Nos derniers lancements \n\n";
-        while (i<3) {
+  },
+  function(session, results){
+    // console.log('hello')
 
-          //Formalisation du texte
-          string += "Nom de la mission "+JSON.stringify(info[i].mission_name) +"  \n";
-          string += "Date de la mission "+Date(info[i].launch_date_utc) +"  \n";
-          string += "Site du lancement "+JSON.stringify(info[i].site_name_long) +"  \n";
-          string += "Nom de la fusée "+JSON.stringify(info[i].rocket.rocket_name) +"  \n";
-          string += "\n";
-          i++;
-        }
-        //Résultat des lancements
-    
+       SpaceX.getCapsule(results.response,function(err, info){
+         if(err == null){
+            console.log(results.response);
+            console.log(info);
+            //Card
             var card = {
                 "type": "message",
-                "text": "Plain text is ok, but sometimes I long for more...",
                 "attachments": [
                   {
                     "contentType": "application/vnd.microsoft.card.adaptive",
@@ -126,52 +203,49 @@ bot.dialog('option2',[
                       "body": [
                         {
                           "type": "TextBlock",
-                          "text": info[0].mission_name,
+                          "text": "Fusée : "+info.name,
                           "size": "large"
+
                         },
                         {
-                          "type": "TextBlock",
-                          "text": "*Sincerely yours,*"
-                        },
-                        {
-                          "type": "TextBlock",
-                          "text": "Adaptive Cards",
-                          "separation": "none"
-                        }
-                      ],
-                      "actions": [
-                        {
-                          "type": "Action.OpenUrl",
-                          "url": "http://adaptivecards.io",
-                          "title": "Learn More"
-                        }
+                            "type": "TextBlock",
+                            "text": "Type : "+info.type,
+                            "separation": "none"
+                          },
+                          {
+                            "type": "TextBlock",
+                            "text": "Crew capacity : "+info.crew_capacity
+                          },
+                          {
+                            "type": "TextBlock",
+                            "text": "Dimension",
+                            "size":"Large",
+                          },
+                          {
+                            "type": "TextBlock",
+                            "text": "Meters : "+info.diameter.meters                          },
+                          {
+                            "type": "TextBlock",
+                            "text": "Feet : "+info.diameter.feet,
+                            "separation": "none"
+                          }
                       ]
                     }
                   }
                 ]
               };
 
+          //Affichage du résultat
+           session.send(card);
+         }
+       });
+   }]);
 
-
-
-        session.send(card);
-    });
-  }
-]);
-
-
-
-bot.dialog('option3',[
-  function(session){ session.send("Vous êtes dans l'option 3")}
-]);
-
-
+// Option 4 - 'A propos de nous'
 bot.dialog('option4',[
   function(session){
-                session.sendTyping();
-                SpaceX.getCompanyInfo(function(err, info){
-                    
-                    //console.log(info);
+                session.sendTyping(); // Les trois points de chargement du message
+                SpaceX.getCompanyInfo(function(err, info){ //Récupère les infos de la companie Space X
                     var card = {
                         "type": "message",
                         "attachments": [
@@ -181,17 +255,17 @@ bot.dialog('option4',[
                               "type": "AdaptiveCard",
                               "version": "1.0",
                               "body": [
-                                {
+                                { //Titre 'We are SpaceX
                                   "type": "TextBlock",
                                   "text": "We are "+info.name,
                                   "size": "large"
                                 },
-                                {
+                                {   //Image de la photo visible dans la card
                                     "type": "Image",
                                     "url": "https://camo.githubusercontent.com/039d05b54e544e61fe6224b037d8d2818025e29f/68747470733a2f2f692e696d6775722e636f6d2f796d70753874352e6a7067",
                                     "imageSize": "small",
                                 },
-                                {
+                                {   // Nom du dirigeant
                                   "type": "TextBlock",
                                   "text": "CEO : "+info.founder
                                 },
@@ -263,14 +337,152 @@ bot.dialog('option4',[
                           }
                         ]
                       };
-                      
+
                       session.send(card);
                 });
-         
+
     }
 ]);
 
-//Dialogue de présentation du bot
+//Dialogue de présentation du bot - Dès l'ouverture du client
 bot.dialog('presentation',[
-  function(session){ session.send('Bonjour  je suis le bot dédié à l\'API de Space-X.');}
+  function(session){ session.send('Bonjour  je suis le bot dédié à l\'API de Space-X. Je peux effectuer les actions suivantes:');}
 ]);
+
+
+
+//  ----------------------------------
+
+
+function buildLaunchAdaptiveCard(launch, session) {
+    var adaptiveCardMessage = new builder.Message(session)
+        .addAttachment({
+            contentType: "application/vnd.microsoft.card.adaptive",
+            content: {
+                type: "AdaptiveCard",
+                body: [
+                    {
+                        "type": "Container",
+                        "items": [
+                            {
+                                "type": "TextBlock",
+                                "text": launch.mission_name,
+                                "weight": "bolder",
+                                "size": "medium"
+                            },
+                            {
+                                "type": "ColumnSet",
+                                "columns": [
+                                    {
+                                        "type": "Column",
+                                        "width": "auto",
+                                        "items": [
+                                            {
+                                                "type": "Image",
+                                                "url": launch.links.mission_patch_small,
+                                                "size": "small",
+                                                "style": "person"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "TextBlock",
+                                                "text": "Matt Hidinger",
+                                                "weight": "bolder",
+                                                "wrap": true
+                                            },
+                                            {
+                                                "type": "TextBlock",
+                                                "spacing": "none",
+                                                "text": "Created {{DATE(2017-02-14T06:08:39Z, SHORT)}}",
+                                                "isSubtle": true,
+                                                "wrap": true
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "Container",
+                        "items": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Now that we have defined the main rules and features of the format, we need to produce a schema and publish it to GitHub. The schema will be the starting point of our reference documentation.",
+                                "wrap": true
+                            },
+                            {
+                                "type": "FactSet",
+                                "facts": [
+                                    {
+                                        "title": "Board:",
+                                        "value": "Adaptive Card"
+                                    },
+                                    {
+                                        "title": "List:",
+                                        "value": "Backlog"
+                                    },
+                                    {
+                                        "title": "Assigned to:",
+                                        "value": "Matt Hidinger"
+                                    },
+                                    {
+                                        "title": "Due date:",
+                                        "value": "Not set"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "actions": [
+                    {
+                        "type": "Action.ShowCard",
+                        "title": "Set due date",
+                        "card": {
+                            "type": "AdaptiveCard",
+                            "body": [
+                                {
+                                    "type": "Input.Date",
+                                    "id": "dueDate"
+                                }
+                            ],
+                            "actions": [
+                                {
+                                    "type": "Action.Submit",
+                                    "title": "OK"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "Action.ShowCard",
+                        "title": "Comment",
+                        "card": {
+                            "type": "AdaptiveCard",
+                            "body": [
+                                {
+                                    "type": "Input.Text",
+                                    "id": "comment",
+                                    "isMultiline": true,
+                                    "placeholder": "Enter your comment"
+                                }
+                            ],
+                            "actions": [
+                                {
+                                    "type": "Action.Submit",
+                                    "title": "OK"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        });
+        return adaptiveCardMessage;
+}
