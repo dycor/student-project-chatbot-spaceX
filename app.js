@@ -6,7 +6,7 @@ var builder = require("botbuilder");
 var restify = require("restify");
 
 
-const SpaceXAPI = require('SpaceX-API-Wrapper');
+var SpaceXAPI = require('spacex-api-wrapper');
 
 let SpaceX = new SpaceXAPI();
 
