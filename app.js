@@ -159,9 +159,6 @@ bot.dialog('option1',[
                //
 
              });
-         },
-         function(session){
-             session.endDialod("menu");
          }
 ]);
 
@@ -175,9 +172,6 @@ bot.dialog('option2',[
           var adaptiveCardMessage = buildLaunchAdaptiveCard(launch, session);
           session.send(adaptiveCardMessage);
       });
-  },
-  function(session){
-      session.endDialod("menu");
   }
 
 ]);
@@ -244,9 +238,6 @@ bot.dialog('option3',[
            session.send(card);
          }
        });
-   },
-   function(session){
-       session.endDialod("menu");
    }
 ]);
 
@@ -350,9 +341,6 @@ bot.dialog('option4',[
                       session.send(card);
                 });
 
-    },
-    function(session){
-        session.endDialod("menu");
     }
 ]);
 
