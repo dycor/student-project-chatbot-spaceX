@@ -10,10 +10,6 @@ const SpaceXAPI = require('SpaceX-API-Wrapper');
 
 let SpaceX = new SpaceXAPI();
 
-var connector = new builder.ChatConnector({
- appId: process.env.MICROSOFT_APP_ID,
- appPassword: process.env.MICROSOFT_APP_PASSWORD
-});
 
 //Chaque serveur doit avoir un port d'écoute pour fonctionner .
 //3) On crée un serveur en lui donnant un port d'écoute libre.
@@ -25,8 +21,8 @@ server.listen(port, function(){console.log(`Serveur sur écoute du port ${port} 
 // 4) Configuration de notre BUILDER pour connecter le client avec bot.
 //Par défaut 'ChatConnector' n'attend pas de paramètres
 var connector = new builder.ChatConnector({
-    appId: process.env.MICROSOFT_APP_ID,
-    appPassword: process.env.MICROSOFT_APP_PASSWORD
+ appId: process.env.MICROSOFT_APP_ID,
+ appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
 
 // 5)   Créer notre route de dialogue avec une requête POST pour ENVOYER un message
@@ -43,6 +39,9 @@ var bot = new builder.UniversalBot(connector, [
     function(session){
         //Cette fonction contient le dialogue "menu" programmé plus bas.
         session.beginDialog("menu");
+    },
+    function(session){
+        session.endDialod();
     }
 ]).set('storage', inMemoryStorage);
 //Définition de la mémoire de stockage pour nos DialogData , userData ou encore nos ConversionData.
@@ -132,7 +131,7 @@ bot.dialog('option1',[
 
                                 {
                                   "type": "TextBlock",
-                                  "text": "Area : "+info.location.name
+                                  "text": "Area : "+info.location
                                 },
                                 {
                                   "type": "TextBlock",
@@ -163,6 +162,9 @@ bot.dialog('option1',[
                //
 
              });
+         },
+         function(session){
+             session.endDialod("menu");
          }
 ]);
 
@@ -176,6 +178,9 @@ bot.dialog('option2',[
           var adaptiveCardMessage = buildLaunchAdaptiveCard(launch, session);
           session.send(adaptiveCardMessage);
       });
+  },
+  function(session){
+      session.endDialod("menu");
   }
 
 ]);
@@ -242,7 +247,11 @@ bot.dialog('option3',[
            session.send(card);
          }
        });
-   }]);
+   },
+   function(session){
+       session.endDialod("menu");
+   }
+]);
 
 // Option 4 - 'A propos de nous'
 bot.dialog('option4',[
@@ -344,6 +353,9 @@ bot.dialog('option4',[
                       session.send(card);
                 });
 
+    },
+    function(session){
+        session.endDialod("menu");
     }
 ]);
 
