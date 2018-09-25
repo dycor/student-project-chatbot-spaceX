@@ -104,9 +104,7 @@ bot.dialog('option1',[
                //
                if(err == null){
                   //Card
-
                   if(Object.keys(info).length != 0){
-
                     var card = {
                         "type": "message",
                         "attachments": [
@@ -154,18 +152,23 @@ bot.dialog('option1',[
                         ]
                       };
                     session.send(card);
-
-                  }else {
-                    session.send("Aucun lancement ne correspond à "+results.response);
+                    session.replaceDialog('menu');
+                  }else { //Il n'y a pas de fusée
+                    session.send("No result with launch called `"+results.response+"`");
+                    //On retourne au menu principal après 15 secondes d'attente
+                    setTimeout(function() {
+                      session.replaceDialog('menu');
+                    }, 15000); //10 seconds
                   }
-
-
 
                }else{
                     //Cas où il n'y a pas de connexion à l'api
                     session.send("Il semble qu'il y ait un problème.. Vérifiez votre connexion votre connexion Internet.")
+                    session.replaceDialog('menu');
                }
              });
+
+
          }
 ]);
 
