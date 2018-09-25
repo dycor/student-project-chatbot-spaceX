@@ -95,13 +95,12 @@ bot.on('conversationUpdate', function (message) {
 bot.dialog('option1',[
         function(session){
           builder.Prompts.text(session,`Input a launch code`);
-
         },
         function(session, results){
-          // console.log('hello')
-
+            // Les trois points de chargement du message
+             session.sendTyping();
+            //Affichage du résultat
              SpaceX.getLaunchPad(results.response ,function(err, info){
-
                //
                if(err == null){
                   //Card
@@ -118,7 +117,6 @@ bot.dialog('option1',[
                                 "type": "TextBlock",
                                 "text": "Lauch nam : "+info.full_name,
                                 "size": "large"
-
                               },
                               {
                                   "type": "TextBlock",
@@ -152,9 +150,11 @@ bot.dialog('option1',[
                         }
                       ]
                     };
-
                 //Affichage du résultat
                  session.send(card);
+               }else{
+                    //Cas où il n'y a pas de connexion à l'api
+                    session.send("Il semble qu'il y ait un problème.. Vérifiez votre connexion votre connexion Internet.")
                }
                //
 
@@ -167,12 +167,23 @@ bot.dialog('option2',[
 
 
       function (session) {
-      session.sendTyping();
-      SpaceX.getLatestLaunch(function (err, launch) {
-          var adaptiveCardMessage = buildLaunchAdaptiveCard(launch, session);
-          session.send(adaptiveCardMessage);
-      });
-  }
+        // Les trois points de chargement du message
+          session.sendTyping();
+          //Affichage du résultat
+          SpaceX.getLatestLaunch(function (err, launch) {
+
+            if(err == null){//Tout est ok pour le serveur
+              if(launch!=null){//Le serveur retourne bien un lancement (l'objet n'est pas null)
+                var adaptiveCardMessage = buildLaunchAdaptiveCard(launch, session);
+                session.send(adaptiveCardMessage);
+
+                //Le dernier lancement ne se retourne pas..
+              }else session.send("Nous rencontrons un problème . Nous vous prions de bien vouloir nous en excuser.")
+
+              //Cas où il n'y a pas de connexion à l'api
+            }else session.send("Il semble qu'il y ait un problème.. Vérifiez votre connexion votre connexion Internet.")
+          });
+      }
 
 ]);
 
@@ -187,55 +198,47 @@ bot.dialog('option3',[
     // console.log('hello')
 
        SpaceX.getCapsule(results.response,function(err, info){
-         if(err == null){
-            console.log(results.response);
-            console.log(info);
-            //Card
-            var card = {
-                "type": "message",
-                "attachments": [
-                  {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
-                    "content": {
-                      "type": "AdaptiveCard",
-                      "version": "1.0",
-                      "body": [
-                        {
-                          "type": "TextBlock",
-                          "text": "Capsule : "+info.name,
-                          "size": "large"
 
-                        },
-                        {
-                            "type": "TextBlock",
-                            "text": "Type : "+info.type,
-                            "separation": "none"
-                          },
-                          {
-                            "type": "TextBlock",
-                            "text": "Crew capacity : "+info.crew_capacity
-                          },
-                          {
-                            "type": "TextBlock",
-                            "text": "Diameter",
-                            "size":"Large",
-                          },
-                          {
-                            "type": "TextBlock",
-                            "text": "Meters : "+info.diameter.meters                          },
-                          {
-                            "type": "TextBlock",
-                            "text": "Feet : "+info.diameter.feet,
-                            "separation": "none"
-                          }
+         if(err == null){//Tout est ok pour la réponse du serveur
+              //console.log(results.response);
+              //console.log(info);
+              if(Object.keys(info).length != 0){//Il y a bien un résultat du serveur(l'objet n'est pas null)
+                var card = {
+                    "type": "message",
+                    "attachments": [
+                      {
+                        "contentType": "application/vnd.microsoft.card.adaptive",
+                        "content": {
+                          "type": "AdaptiveCard",
+                          "version": "1.0",
+                          "body": [
+                            {"type": "TextBlock",
+                              "text": "Capsule : "+info.name,
+                              "size": "large"},
+                            {"type": "TextBlock",
+                              "text": "Type : "+info.type,
+                              "separation": "none"},
+                             {"type": "TextBlock",
+                               "text": "Crew capacity : "+info.crew_capacity},
+                               {"type": "TextBlock",
+                                "text": "Diameter",
+                                "size":"Large"  },
+                                {"type": "TextBlock",
+                                "text": "Meters : "+info.diameter.meters},
+                                {"type": "TextBlock",
+                                "text": "Feet : "+info.diameter.feet,
+                                "separation": "none"}]
+                        }
+                      }
                       ]
-                    }
-                  }
-                ]
-              };
-
-          //Affichage du résultat
-           session.send(card);
+                  };
+                  session.send(card);
+              }else { //Il n'y a pas de fusée
+                //console.log("Vide");
+                session.send("Il semble que nous avons pas trouvé de fusée de ce nom.");
+              }
+         }else{ //Il y a un soucis depuis le serveur(Connexion ,etc..)
+           session.send("Il semble qu'il y ait un problème.. Vérifiez votre connexion votre connexion Internet.")
          }
        });
    }
@@ -244,101 +247,108 @@ bot.dialog('option3',[
 // Option 4 - 'A propos de nous'
 bot.dialog('option4',[
   function(session){
-                session.sendTyping(); // Les trois points de chargement du message
-                SpaceX.getCompanyInfo(function(err, info){ //Récupère les infos de la companie Space X
-                    var card = {
-                        "type": "message",
-                        "attachments": [
-                          {
-                            "contentType": "application/vnd.microsoft.card.adaptive",
-                            "content": {
-                              "type": "AdaptiveCard",
-                              "version": "1.0",
-                              "body": [
-                                { //Titre 'We are SpaceX
-                                  "type": "TextBlock",
-                                  "text": "We are "+info.name,
-                                  "size": "large"
-                                },
-                                {   //Image de la photo visible dans la card
-                                    "type": "Image",
-                                    "url": "https://camo.githubusercontent.com/039d05b54e544e61fe6224b037d8d2818025e29f/68747470733a2f2f692e696d6775722e636f6d2f796d70753874352e6a7067",
-                                    "imageSize": "small",
-                                },
-                                {   // Nom du dirigeant
-                                  "type": "TextBlock",
-                                  "text": "CEO : "+info.founder
-                                },
-                                {
+                // Les trois points de chargement du message
+                session.sendTyping();
+                //Affichage du résultat
+                SpaceX.getCompanyInfo(function(err, info){
+                   //Récupère les infos de la companie Space X
+                   if(err == null){
+                     var card = {
+                          "type": "message",
+                          "attachments": [
+                            {
+                              "contentType": "application/vnd.microsoft.card.adaptive",
+                              "content": {
+                                "type": "AdaptiveCard",
+                                "version": "1.0",
+                                "body": [
+                                  { //Titre 'We are SpaceX
                                     "type": "TextBlock",
-                                    "text": "Foundation date : "+info.founded,
-                                    "separation": "none"
+                                    "text": "We are "+info.name,
+                                    "size": "large"
+                                  },
+                                  {   //Image de la photo visible dans la card
+                                      "type": "Image",
+                                      "url": "https://camo.githubusercontent.com/039d05b54e544e61fe6224b037d8d2818025e29f/68747470733a2f2f692e696d6775722e636f6d2f796d70753874352e6a7067",
+                                      "imageSize": "small",
+                                  },
+                                  {   // Nom du dirigeant
+                                    "type": "TextBlock",
+                                    "text": "CEO : "+info.founder
                                   },
                                   {
-                                    "type": "TextBlock",
-                                    "text": "Number of launch site : "+info.launch_sites
-                                  },
+                                      "type": "TextBlock",
+                                      "text": "Foundation date : "+info.founded,
+                                      "separation": "none"
+                                    },
+                                    {
+                                      "type": "TextBlock",
+                                      "text": "Number of launch site : "+info.launch_sites
+                                    },
+                                    {
+                                      "type": "TextBlock",
+                                      "text": "Number of test site: "+info.test_sites,
+                                      "separation": "none"
+                                    },
+                                    {
+                                      "type": "TextBlock",
+                                      "text": "Location",
+                                      "size": "medium"
+                                    },
+                                    {
+                                      "type": "TextBlock",
+                                      "text": "Address : "+info.headquarters.address
+                                    },
+                                    {
+                                      "type": "TextBlock",
+                                      "text": "City : "+info.headquarters.city,
+                                      "separation": "none"
+                                    },
+                                    {
+                                      "type": "TextBlock",
+                                      "text": "State : "+info.headquarters.state,
+                                      "separation": "none"
+                                    },
+                                    {
+                                      "type": "TextBlock",
+                                      "text": "Team",
+                                      "size": "medium"
+                                    },
+                                    {
+                                      "type": "TextBlock",
+                                      "text": "CTO : "+info.cto
+                                    },
+                                    {
+                                      "type": "TextBlock",
+                                      "text": "COO :"+info.coo,
+                                      "separation": "none"
+                                    },
+                                    {
+                                      "type": "TextBlock",
+                                      "text": "CTO Propulsion :"+info.cto_propulsion,
+                                      "separation": "none"
+                                    },
+                                    {
+                                      "type": "TextBlock",
+                                      "text": info.summary
+                                    }
+                                ],
+                                "actions": [
                                   {
-                                    "type": "TextBlock",
-                                    "text": "Number of test site: "+info.test_sites,
-                                    "separation": "none"
-                                  },
-                                  {
-                                    "type": "TextBlock",
-                                    "text": "Location",
-                                    "size": "medium"
-                                  },
-                                  {
-                                    "type": "TextBlock",
-                                    "text": "Address : "+info.headquarters.address
-                                  },
-                                  {
-                                    "type": "TextBlock",
-                                    "text": "City : "+info.headquarters.city,
-                                    "separation": "none"
-                                  },
-                                  {
-                                    "type": "TextBlock",
-                                    "text": "State : "+info.headquarters.state,
-                                    "separation": "none"
-                                  },
-                                  {
-                                    "type": "TextBlock",
-                                    "text": "Team",
-                                    "size": "medium"
-                                  },
-                                  {
-                                    "type": "TextBlock",
-                                    "text": "CTO : "+info.cto
-                                  },
-                                  {
-                                    "type": "TextBlock",
-                                    "text": "COO :"+info.coo,
-                                    "separation": "none"
-                                  },
-                                  {
-                                    "type": "TextBlock",
-                                    "text": "CTO Propulsion :"+info.cto_propulsion,
-                                    "separation": "none"
-                                  },
-                                  {
-                                    "type": "TextBlock",
-                                    "text": info.summary
+                                    "type": "Action.OpenUrl",
+                                    "url": "http://www.spacex.com/about",
+                                    "title": "Learn More"
                                   }
-                              ],
-                              "actions": [
-                                {
-                                  "type": "Action.OpenUrl",
-                                  "url": "http://www.spacex.com/about",
-                                  "title": "Learn More"
-                                }
-                              ]
+                                ]
+                              }
                             }
-                          }
-                        ]
-                      };
+                          ]
+                        };
 
-                      session.send(card);
+                        session.send(card);
+                   }else{ //Cas où il n'y a pas de connexion à l'api
+                    session.send("Il semble qu'il y ait un problème.. Vérifiez votre connexion votre connexion Internet.")
+                   }
                 });
 
     }
@@ -346,7 +356,9 @@ bot.dialog('option4',[
 
 //Dialogue de présentation du bot - Dès l'ouverture du client
 bot.dialog('presentation',[
-  function(session){ session.send('Hello ! I\'m Wall-e ,the space-x chatbot  . Here is all of i can do for you:');}
+  function(session){
+    session.send('Hello ! I\'m Wall-e ,the space-x chatbot  . Here is all of i can do for you:');
+  }
 ]);
 
 
