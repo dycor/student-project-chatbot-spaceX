@@ -104,70 +104,75 @@ bot.dialog('option1',[
                //
                if(err == null){
                   //Card
-                  var card = {
-                      "type": "message",
-                      "attachments": [
-                        {
-                          "contentType": "application/vnd.microsoft.card.adaptive",
-                          "content": {
-                            "type": "AdaptiveCard",
-                            "version": "1.0",
-                            "body": [
-                              {
-                                "type": "TextBlock",
-                                "text": "Lauch nam : "+info.full_name,
-                                "size": "large"
-                              },
-                              {
-                                  "type": "TextBlock",
-                                  "text": "Id : "+info.status,
-                                  "separation": "none"
-                                },
 
+                  if(Object.keys(info).length != 0){
+
+                    var card = {
+                        "type": "message",
+                        "attachments": [
+                          {
+                            "contentType": "application/vnd.microsoft.card.adaptive",
+                            "content": {
+                              "type": "AdaptiveCard",
+                              "version": "1.0",
+                              "body": [
                                 {
                                   "type": "TextBlock",
-                                  "text": "Area : "+info.location
+                                  "text": "Lauch nam : "+info.full_name,
+                                  "size": "large"
                                 },
                                 {
-                                  "type": "TextBlock",
-                                  "text": "Latitude : "+info.location.latitude
-                                },
-                                {
-                                  "type": "TextBlock",
-                                  "text": "longtitude : "+info.location.longtitude
-                                },
-                                {
-                                  "type": "TextBlock",
-                                  "text": "Capsule: "+info.vehicles_launched,
-                                  "separation": "none"
-                                },
-                                {
-                                  "type": "TextBlock",
-                                  "text": "Description : "+info.details
-                                }
-                            ]
+                                    "type": "TextBlock",
+                                    "text": "Id : "+info.status,
+                                    "separation": "none"
+                                  },
+
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "Area : "+info.location
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "Latitude : "+info.location.latitude
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "longtitude : "+info.location.longtitude
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "Capsule: "+info.vehicles_launched,
+                                    "separation": "none"
+                                  },
+                                  {
+                                    "type": "TextBlock",
+                                    "text": "Description : "+info.details
+                                  }
+                              ]
+                            }
                           }
-                        }
-                      ]
-                    };
-                //Affichage du résultat
-                 session.send(card);
+                        ]
+                      };
+                    session.send(card);
+
+                  }else {
+                    session.send("Aucun lancement ne correspond à "+results.response);
+                  }
+
+
+
                }else{
                     //Cas où il n'y a pas de connexion à l'api
                     session.send("Il semble qu'il y ait un problème.. Vérifiez votre connexion votre connexion Internet.")
                }
-               //
-
              });
          }
 ]);
 
 //Option 2 - Les des derniers lancements
 bot.dialog('option2',[
-
-
       function (session) {
-        // Les trois points de chargement du message
+          // Les trois points de chargement du message
           session.sendTyping();
           //Affichage du résultat
           SpaceX.getLatestLaunch(function (err, launch) {
